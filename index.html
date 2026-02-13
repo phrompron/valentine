@@ -1,1061 +1,550 @@
 <!doctype html>
-<html lang="th">
-<head>
+<html lang="th" class="h-full">
+ <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบเช็คชื่อพนักงาน</title>
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Chart.js สำหรับกราฟ -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  <title>Valentine's Day Surprise</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&amp;family=Dancing+Script:wght@400;700&amp;display=swap" rel="stylesheet">
   <style>
-    body { box-sizing: border-box; font-family: 'Sarabun','Noto Sans Thai',sans-serif; }
-    * { box-sizing: border-box; }
-    .status-present { background-color: #dcfce7; }
-    .status-absent  { background-color: #fee2e2; }
-    .status-late    { background-color: #fed7aa; }
-    .status-leave   { background-color: #fef9c3; }
-    .btn-status { transition: all 0.2s; }
-    .btn-status:hover { transform: scale(1.05); }
-
-    .modal {
-      display: none; position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.5);
+    * { font-family: 'Prompt', sans-serif; }
+    .script-font { font-family: 'Dancing Script', cursive; }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+    }
+    
+    @keyframes pulse-heart {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    
+    @keyframes sparkle {
+      0%, 100% { opacity: 0; transform: scale(0); }
+      50% { opacity: 1; transform: scale(1); }
+    }
+    
+    @keyframes fall {
+      0% { transform: translateY(-100%) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100%) rotate(360deg); opacity: 0; }
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    @keyframes bounce-in {
+      0% { transform: scale(0); opacity: 0; }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
+    @keyframes confetti {
+      0% { transform: translateY(0) rotateZ(0deg); opacity: 1; }
+      100% { transform: translateY(100%) rotateZ(720deg); opacity: 0; }
+    }
+    
+    .float { animation: float 3s ease-in-out infinite; }
+    .pulse-heart { animation: pulse-heart 1s ease-in-out infinite; }
+    .sparkle { animation: sparkle 1.5s ease-in-out infinite; }
+    .shake { animation: shake 0.5s ease-in-out; }
+    .bounce-in { animation: bounce-in 0.6s ease-out forwards; }
+    
+    .heart-bg {
+      background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 50%, #f48fb1 100%);
+    }
+    
+    .glass {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .card-flip {
+      perspective: 1000px;
+    }
+    
+    .card-inner {
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
+    
+    .card-flip.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+    
+    .card-front, .card-back {
+      backface-visibility: hidden;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .card-back {
+      transform: rotateY(180deg);
+    }
+    
+    .falling-heart {
+      position: fixed;
+      font-size: 24px;
+      animation: fall linear forwards;
+      pointer-events: none;
       z-index: 1000;
     }
-    .modal.active { display: flex; align-items: center; justify-content: center; }
-
-    .loading { display: none; }
-    .loading.active {
-      display: inline-block;
-      width: 16px; height: 16px;
-      border: 2px solid #ffffff;
-      border-top-color: transparent;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
+    
+    .confetti {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      animation: confetti 3s ease-out forwards;
+      pointer-events: none;
+      z-index: 1000;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .card-shadow { box-shadow: 0 10px 25px rgba(15,23,42,0.08); }
+    
+    input:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.3);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(236, 72, 153, 0.4);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
+    }
   </style>
-</head>
-
-<body class="w-full min-h-full bg-gradient-to-br from-blue-50 to-indigo-100">
-  <div class="w-full min-h-full p-6 max-w-6xl mx-auto">
-
-    <!-- Header -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <div>
-        <h1 class="text-3xl font-bold text-indigo-900 mb-2" id="company-name">Gosoft.co.th</h1>
-        <p class="text-xl text-indigo-700" id="department-name">Techncal service support</p>
-        <p class="text-lg text-gray-600">Head of Unit: <span id="manager-name">Putinan Suramarna</span></p>
-        <p class="text-xl text-indigo-700">Cloud Implementation</p>
-        <p class="text-lg text-gray-600">Head of Unit: <span>Prawit Tangmanopeanchai</span></p>
-      </div>
-      <div class="text-right">
-        <p class="text-sm text-gray-500">เวลาปัจจุบัน</p>
-        <p class="text-base font-semibold text-gray-800" id="current-time"></p>
-      </div>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full heart-bg overflow-auto">
+  <div id="app" class="min-h-full w-full relative"><!-- Floating Hearts Background -->
+   <div id="floating-hearts" class="fixed inset-0 pointer-events-none overflow-hidden z-0"></div><!-- Lock Screen -->
+   <div id="lock-screen" class="min-h-full w-full flex items-center justify-center p-4 relative z-10">
+    <div class="glass rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
+     <div class="text-6xl mb-4 pulse-heart">
+      💝
+     </div>
+     <h1 class="text-2xl font-bold text-pink-800 mb-2">มีข้อความลับรอคุณอยู่</h1>
+     <p class="text-pink-600 mb-6">กรุณาใส่รหัสเพื่อเปิดดู</p>
+     <div class="flex justify-center gap-2 mb-4" id="code-inputs"><input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-pink-300 bg-white/50 text-pink-800" data-index="0"> <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-pink-300 bg-white/50 text-pink-800" data-index="1"> <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-pink-300 bg-white/50 text-pink-800" data-index="2"> <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-pink-300 bg-white/50 text-pink-800" data-index="3">
+     </div>
+     <p id="error-message" class="text-red-500 text-sm mb-4 hidden">รหัสไม่ถูกต้อง ลองใหม่นะ 💔</p><button id="unlock-btn" class="btn-primary text-white font-semibold py-3 px-8 rounded-full w-full"> เปิดข้อความ 💌 </button>
+     <p class="text-pink-400 text-xs mt-4">💡 phrmphon</p>
     </div>
-
-    <!-- Navigation Tabs -->
-    <div class="bg-white rounded-lg shadow-md mb-6">
-      <div class="flex border-b overflow-x-auto">
-        <button class="tab-btn px-6 py-3 font-semibold text-indigo-600 border-b-2 border-indigo-600 whitespace-nowrap" data-tab="attendance">เช็คชื่อพนักงาน</button>
-        <button class="tab-btn px-6 py-3 font-semibold text-gray-600 hover:text-indigo-600 whitespace-nowrap" data-tab="employees">จัดการพนักงาน</button>
-        <button class="tab-btn px-6 py-3 font-semibold text-gray-600 hover:text-indigo-600 whitespace-nowrap" data-tab="history">ประวัติการเช็คชื่อ</button>
-        <button class="tab-btn px-6 py-3 font-semibold text-gray-600 hover:text-indigo-600 whitespace-nowrap" data-tab="summary">สรุปภาพรวม</button>
+   </div><!-- Main Content (Hidden Initially) -->
+   <div id="main-content" class="hidden min-h-full w-full relative z-10"><!-- Welcome Section -->
+    <section id="welcome-section" class="min-h-full w-full flex items-center justify-center p-4">
+     <div class="text-center max-w-lg">
+      <div class="text-8xl mb-6 bounce-in">
+       💕
       </div>
-    </div>
-
-    <!-- Attendance Tab -->
-    <div id="tab-attendance" class="tab-content">
-      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="flex items-center gap-4 mb-4">
-          <label class="font-semibold text-gray-700">เลือกวันที่:</label>
-          <input type="date" id="attendance-date" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="text-gray-600" id="current-time-inline"></span>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <div class="bg-green-100 p-3 rounded-lg text-center">
-            <div class="text-2xl font-bold text-green-700" id="count-present">0</div>
-            <div class="text-sm text-gray-600">เข้า office</div>
-          </div>
-          <div class="bg-red-100 p-3 rounded-lg text-center">
-            <div class="text-2xl font-bold text-red-700" id="count-absent">0</div>
-            <div class="text-sm text-gray-600">wfh</div>
-          </div>
-          <div class="bg-yellow-100 p-3 rounded-lg text-center">
-            <div class="text-2xl font-bold text-yellow-700" id="count-leave">0</div>
-            <div class="text-sm text-gray-600">ลางาน</div>
-          </div>
-          <div class="bg-orange-100 p-3 rounded-lg text-center">
-            <div class="text-2xl font-bold text-orange-700" id="count-late">0</div>
-            <div class="text-sm text-gray-600">เข้าสาย</div>
-          </div>
-        </div>
+      <h1 id="greeting-name" class="script-font text-5xl md:text-6xl text-pink-800 mb-4">happy valentine's day</h1>
+      <p class="text-pink-600 text-lg mb-8">มีเซอร์ไพรส์รอคุณอยู่...</p><button id="start-journey-btn" class="btn-primary text-white font-semibold py-4 px-10 rounded-full text-lg"> ไปกันเลย ✨ </button>
+     </div>
+    </section><!-- Game Section -->
+    <section id="game-section" class="hidden min-h-full w-full flex items-center justify-center p-4">
+     <div class="glass rounded-3xl p-6 max-w-md w-full text-center shadow-2xl">
+      <h2 class="text-2xl font-bold text-pink-800 mb-2">🎮 เกมจับคู่หัวใจ</h2>
+      <p class="text-pink-600 mb-4">จับคู่ให้ครบเพื่อดูข้อความพิเศษ!</p>
+      <div class="flex justify-between items-center mb-4 px-2"><span class="text-pink-700 font-semibold">คะแนน: <span id="score">0</span></span> <span class="text-pink-700 font-semibold">เวลา: <span id="timer">60</span>s</span>
       </div>
-
-      <div id="attendance-list" class="space-y-3"></div>
-
-      <div class="mt-6">
-        <button id="save-attendance-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2">
-          <span class="loading"></span>
-          <span>บันทึกการเช็คชื่อ</span>
-        </button>
+      <div id="game-board" class="grid grid-cols-4 gap-2 mb-4"><!-- Cards will be generated here -->
+      </div><button id="restart-game-btn" class="text-pink-600 underline text-sm">เริ่มเกมใหม่</button>
+     </div>
+    </section><!-- Message Section -->
+    <section id="message-section" class="hidden min-h-full w-full flex items-center justify-center p-4">
+     <div class="glass rounded-3xl p-8 max-w-lg w-full text-center shadow-2xl relative overflow-hidden">
+      <div class="absolute top-4 left-4 text-4xl sparkle">
+       ✨
       </div>
-    </div>
-
-    <!-- Employees Management Tab -->
-    <div id="tab-employees" class="tab-content hidden">
-      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 class="text-2xl font-bold text-indigo-900 mb-4">เพิ่มพนักงานใหม่</h2>
-        <form id="add-employee-form" class="space-y-4">
-          <div>
-            <label class="block text-gray-700 font-semibold mb-2">รหัสพนักงาน</label>
-            <input type="text" id="new-employee-id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="123456" required>
-          </div>
-          <div>
-            <label class="block text-gray-700 font-semibold mb-2">ชื่อ - นามสกุล</label>
-            <input type="text" id="new-employee-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="ตัวอย่างที่ 1" required>
-          </div>
-          <div>
-            <label class="block text-gray-700 font-semibold mb-2">ตำแหน่ง</label>
-            <input type="text" id="new-employee-position" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="ตำแหน่ง" required>
-          </div>
-          <div>
-            <label class="block text-gray-700 font-semibold mb-2">แผนก</label>
-            <input type="text" id="new-employee-department" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="แผนก" required>
-          </div>
-
-          <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2">
-            <span class="loading"></span>
-            <span>เพิ่มพนักงาน</span>
-          </button>
-        </form>
+      <div class="absolute top-4 right-4 text-4xl sparkle" style="animation-delay: 0.5s;">
+       ✨
       </div>
-
-      <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-2xl font-bold text-indigo-900 mb-4">รายชื่อพนักงาน</h2>
-        <div id="employees-list" class="space-y-3"></div>
+      <div class="text-7xl mb-6 pulse-heart">
+       💖
       </div>
-    </div>
-
-    <!-- History Tab -->
-    <div id="tab-history" class="tab-content hidden">
-      <div class="bg-white rounded-2xl card-shadow p-6 mb-6">
-        <h2 class="text-2xl font-bold text-indigo-900 mb-4">ประวัติการเช็คชื่อ</h2>
-
-        <div class="flex flex-col lg:flex-row gap-4 lg:items-end lg:justify-between mb-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-            <div class="flex flex-col gap-1">
-              <label for="history-date" class="text-xs font-semibold text-gray-600">วันที่</label>
-              <input type="date" id="history-date" class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
-            </div>
-            <div class="flex flex-col gap-1">
-              <label for="history-status" class="text-xs font-semibold text-gray-600">สถานะ</label>
-              <select id="history-status" class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                <option value="">ทั้งหมด</option>
-                <option value="present">เข้า office</option>
-                <option value="absent">wfh</option>
-                <option value="leave">ลา</option>
-                <option value="late">เข้าสาย</option>
-              </select>
-            </div>
-            <div class="flex flex-col gap-1">
-              <label for="history-dept" class="text-xs font-semibold text-gray-600">แผนก</label>
-              <select id="history-dept" class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                <option value="">ทั้งหมด</option>
-                <option value="Technical support">Technical support</option>
-                <option value="Cloud Engineer">Cloud Engineer</option>
-              </select>
-            </div>
-            <div class="flex flex-col gap-1">
-              <label for="history-search" class="text-xs font-semibold text-gray-600">ค้นหาชื่อ / รหัสพนักงาน</label>
-              <div class="relative">
-                <input type="text" id="history-search" placeholder="พิมพ์ชื่อ หรือรหัสพนักงาน..." class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="overflow-x-auto border border-gray-100 rounded-xl">
-          <table class="min-w-full text-sm">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">วันที่</th>
-                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">รหัสพนักงาน</th>
-                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">ชื่อพนักงาน</th>
-                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">แผนก</th>
-                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">เวลาเข้า</th>
-                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">เวลาออก</th>
-                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">สถานะ</th>
-                <th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">ชั่วโมงทำงาน</th>
-              </tr>
-            </thead>
-            <tbody id="history-tbody" class="divide-y divide-gray-100"></tbody>
-          </table>
-        </div>
-
-        <div class="mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2 text-xs md:text-sm text-gray-500">
-          <p id="history-summary-text"></p>
-          <div class="flex items-center gap-2 justify-end">
-            <button id="history-prev" class="px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">ก่อนหน้า</button>
-            <span id="history-page-label"></span>
-            <button id="history-next" class="px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">ถัดไป</button>
-          </div>
-        </div>
+      <h2 class="script-font text-4xl text-pink-800 mb-6">Happy Valentine's Day</h2>
+      <p id="love-message-text" class="text-pink-700 text-lg leading-relaxed mb-8">รักนะ ขอบคุณที่อยู่ด้วยกันมาตลอด<br>
+         อยู่ตามใจเอิร์กไปนานๆน๊าาา💕</p>
+      <div class="flex justify-center gap-4"><button id="surprise-btn" class="btn-primary text-white font-semibold py-3 px-6 rounded-full"> 🎁 เซอร์ไพรส์! </button>
       </div>
-    </div>
-
-    <!-- Summary Tab -->
-    <div id="tab-summary" class="tab-content hidden">
-      <div class="grid gap-4 md:gap-6">
-
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-              <h2 class="text-2xl font-bold text-indigo-900 mb-1">สรุปภาพรวมการเช็คชื่อพนักงาน</h2>
-              <p class="text-gray-600">แสดงข้อมูลสถิติการเข้างาน สถานะ และแผนก ตามช่วงวันที่ที่เลือก</p>
-              <p id="summary-range-label" class="text-xs text-gray-400 mt-2"></p>
-            </div>
-            <div class="flex flex-col sm:flex-row gap-2 items-start sm:items-end">
-              <div class="flex flex-col gap-1">
-                <label class="text-xs font-semibold text-gray-600">วันที่เริ่มต้น</label>
-                <input type="date" id="summary-start-date" class="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
-              </div>
-              <div class="flex flex-col gap-1">
-                <label class="text-xs font-semibold text-gray-600">วันที่สิ้นสุด</label>
-                <input type="date" id="summary-end-date" class="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
-              </div>
-              <div class="flex gap-2">
-                <button id="summary-range-reset" class="mt-4 px-3 py-2 text-xs md:text-sm rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition">รีเซ็ตเป็นวันนี้</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div class="bg-white rounded-2xl card-shadow px-4 py-3 flex flex-col gap-1">
-            <p class="text-xs font-semibold text-gray-500">พนักงานทั้งหมด (มีข้อมูลในช่วง)</p>
-            <p id="sum-total-emp" class="text-2xl font-bold text-gray-900">-</p>
-            <p class="text-xs text-emerald-600">นับจากรหัสพนักงานที่มีในประวัติของช่วงวันที่ที่เลือก</p>
-          </div>
-          <div class="bg-white rounded-2xl card-shadow px-4 py-3 flex flex-col gap-1">
-            <p class="text-xs font-semibold text-gray-500">เข้างานตรงเวลา (ช่วงที่เลือก)</p>
-            <p id="sum-present-today" class="text-2xl font-bold text-emerald-600">-</p>
-            <p class="text-xs text-gray-400">จำนวนครั้งที่สถานะเป็น "ตรงเวลา"</p>
-          </div>
-          <div class="bg-white rounded-2xl card-shadow px-4 py-3 flex flex-col gap-1">
-            <p class="text-xs font-semibold text-gray-500">มาสาย (ช่วงที่เลือก)</p>
-            <p id="sum-late-today" class="text-2xl font-bold text-amber-500">-</p>
-            <p class="text-xs text-amber-600">ใช้ดูแนวโน้มการมาสายโดยรวม</p>
-          </div>
-          <div class="bg-white rounded-2xl card-shadow px-4 py-3 flex flex-col gap-1">
-            <p class="text-xs font-semibold text-gray-500">ลา / ขาด (ช่วงที่เลือก)</p>
-            <p id="sum-leave-absent-today" class="text-2xl font-bold text-rose-500">-</p>
-            <p class="text-xs text-rose-500">รวมสถานะ "ลา" และ "ขาด"</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-          <div class="bg-white rounded-2xl card-shadow p-4">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="text-sm font-semibold text-gray-800">สัดส่วนสถานะการเข้างาน (ช่วงที่เลือก)</h3>
-              <span class="text-xs text-gray-400">จากข้อมูลที่อยู่ในช่วงวันที่</span>
-            </div>
-            <div class="h-64"><canvas id="chart-status-today"></canvas></div>
-          </div>
-
-          <div class="bg-white rounded-2xl card-shadow p-4">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="text-sm font-semibold text-gray-800">แนวโน้มมาสายรายวัน (ตามช่วงวันที่เลือก)</h3>
-              <span class="text-xs text-gray-400">ถ้าไม่เลือกช่วงวันที่ ระบบจะใช้ข้อมูลของ "วันนี้"</span>
-            </div>
-            <div class="h-64"><canvas id="chart-late-trend"></canvas></div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-2xl card-shadow p-4 md:p-5 mb-6">
-          <div class="flex items-center justify-between mb-3">
-            <div>
-              <h3 class="text-sm md:text-base font-semibold text-gray-900">สรุปตามแผนก (อิงข้อมูลในช่วงวันที่ที่เลือก)</h3>
-              <p class="text-xs text-gray-400">ใช้ดูการเข้างานของแต่ละแผนกในมุมมองผู้บริหาร</p>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto border border-gray-100 rounded-xl">
-            <table class="min-w-full text-sm">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">แผนก</th>
-                  <th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">ตรงเวลา</th>
-                  <th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">มาสาย</th>
-                  <th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">ลา</th>
-                  <th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">ขาด</th>
-                  <th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">% เข้างาน</th>
-                </tr>
-              </thead>
-              <tbody id="summary-dept-tbody" class="divide-y divide-gray-100"></tbody>
-            </table>
-          </div>
-        </div>
-
+      <div class="absolute bottom-4 left-4 text-4xl sparkle" style="animation-delay: 0.75s;">
+       💫
       </div>
-    </div>
-
-    <!-- Success Modal -->
-    <div id="success-modal" class="modal">
-      <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-        <div class="text-center">
-          <div class="text-6xl mb-4">✓</div>
-          <h3 class="text-2xl font-bold text-green-600 mb-2">บันทึกข้อมูลเรียบร้อย</h3>
-          <div id="modal-summary" class="text-gray-600 mb-4"></div>
-          <button id="close-modal-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg">ปิด</button>
-        </div>
+      <div class="absolute bottom-4 right-4 text-4xl sparkle" style="animation-delay: 1s;">
+       💫
       </div>
-    </div>
-
+     </div>
+    </section><!-- Surprise Section -->
+    <section id="surprise-section" class="hidden min-h-full w-full flex items-center justify-center p-4">
+     <div class="text-center">
+      <div id="heart-explosion" class="text-9xl mb-8">
+       💝
+      </div>
+      <h2 class="script-font text-5xl md:text-6xl text-pink-800 mb-4">รักนะ!</h2>
+      <p id="final-name" class="text-2xl text-pink-600 mb-8">ขอตังค์หน่อย บช.เดิมเด้อ </p><button id="replay-btn" class="glass text-pink-800 font-semibold py-3 px-8 rounded-full hover:bg-white/40 transition-all"> 🔄 ดูใหม่อีกครั้ง </button>
+     </div>
+    </section>
+   </div>
   </div>
+  <script>
+    // Default configuration
+    const defaultConfig = {
+      secret_code: '1502',
+      lover_name: 'ที่รัก',
+      love_message: 'รักนะ ขอบคุณที่อยู่ด้วยกันมาตลอด อยู่ตามใจเอิร์กไปนานๆน๊าาา 💕',
+      primary_color: '#ec4899',
+      secondary_color: '#fce4ec',
+      text_color: '#831843',
+      accent_color: '#be185d',
+      surface_color: '#ffffff'
+    };
 
-<script>
-  const defaultConfig = {
-    company_name: "Gosoft.co.th",
-    department_name: "Techncal service support",
-    manager_name: "Putinan Suramarna",
-  };
-
-  const today = new Date();
-  const todayISO = today.toISOString().split('T')[0];
-
-  let employees = [];
-  let attendanceRecords = [];
-  let currentDate = todayISO;
-
-  let currentAttendance = {};
-  let checkInTimes = {};
-  let checkOutTimes = {};
-
-  let displayRecords = [];
-  let chartStatusTodayInstance = null;
-  let lateTrendChartInstance = null;
-
-  const ADV_PAGE_SIZE = 7;
-  let advCurrentPage = 1;
-  let advFilteredRecords = [];
-
-  let summaryStartDate = '';
-  let summaryEndDate = '';
-
-  // =========================================================
-  // ✅ โค้ดที่ 1: ส่งเข้า Google Sheet (no-cors)
-  // =========================================================
-  async function sendToGoogleSheet(rows) {
-    try {
-      await fetch('https://script.google.com/macros/s/AKfycbzhWV15TAvFkm2pkVdrN5BZ9sT1k2yWlks3_jmN5eAHQh4muLXi-UCHRQXHGxzKMnNErQ/exec', {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ rows })  // ส่งข้อมูลในรูปแบบ JSON
+    let config = { ...defaultConfig };
+    
+    // Game state
+    let gameState = {
+      cards: [],
+      flippedCards: [],
+      matchedPairs: 0,
+      score: 0,
+      timer: 60,
+      timerInterval: null,
+      isPlaying: false
+    };
+    
+    const emojis = ['💖', '💕', '💗', '💓', '💝', '💘', '🌹', '🦋'];
+    
+    // Initialize floating hearts
+    function createFloatingHearts() {
+      const container = document.getElementById('floating-hearts');
+      container.innerHTML = '';
+      const hearts = ['💕', '💖', '💗', '💓', '❤️', '💘'];
+      
+      for (let i = 0; i < 15; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'absolute text-2xl opacity-20 float';
+        heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+        heart.style.left = Math.random() * 100 + '%';
+        heart.style.top = Math.random() * 100 + '%';
+        heart.style.animationDelay = Math.random() * 3 + 's';
+        heart.style.animationDuration = (3 + Math.random() * 2) + 's';
+        container.appendChild(heart);
+      }
+    }
+    
+    // Create falling hearts effect
+    function createFallingHearts() {
+      const hearts = ['💕', '💖', '💗', '❤️', '💝'];
+      for (let i = 0; i < 30; i++) {
+        setTimeout(() => {
+          const heart = document.createElement('div');
+          heart.className = 'falling-heart';
+          heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+          heart.style.left = Math.random() * 100 + '%';
+          heart.style.animationDuration = (2 + Math.random() * 2) + 's';
+          document.body.appendChild(heart);
+          
+          setTimeout(() => heart.remove(), 4000);
+        }, i * 100);
+      }
+    }
+    
+    // Create confetti effect
+    function createConfetti() {
+      const colors = ['#ec4899', '#f472b6', '#fce7f3', '#be185d', '#ff6b6b', '#ffd93d'];
+      for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti';
+          confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+          confetti.style.left = Math.random() * 100 + '%';
+          confetti.style.top = '-10px';
+          confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+          document.body.appendChild(confetti);
+          
+          setTimeout(() => confetti.remove(), 3000);
+        }, i * 50);
+      }
+    }
+    
+    // Lock screen functionality
+    function setupLockScreen() {
+      const inputs = document.querySelectorAll('#code-inputs input');
+      const unlockBtn = document.getElementById('unlock-btn');
+      const errorMsg = document.getElementById('error-message');
+      
+      inputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+          const value = e.target.value;
+          if (value && index < inputs.length - 1) {
+            inputs[index + 1].focus();
+          }
+        });
+        
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !e.target.value && index > 0) {
+            inputs[index - 1].focus();
+          }
+        });
       });
-      return true;
-    } catch (err) {
-      console.error("Send to Google Sheet failed:", err);
-      return false;
-    }
-  }
-  const dataHandler = {
-    onDataChanged(data) {
-      attendanceRecords = Array.isArray(data) ? data : [];
-      refreshDisplayRecords();
-      updateSummaryView();
-      updateHistoryView();
-      applyAdvancedFilters();
-    }
-  };
-
-  async function onConfigChange(config) {
-    const companyName = config.company_name || defaultConfig.company_name;
-    const departmentName = config.department_name || defaultConfig.department_name;
-    const managerName = config.manager_name || defaultConfig.manager_name;
-
-    document.getElementById('company-name').textContent = companyName;
-    document.getElementById('department-name').textContent = departmentName;
-    document.getElementById('manager-name').textContent = managerName;
-  }
-
-  async function initializeApp() {
-    if (window.dataSdk) {
-      const initResult = await window.dataSdk.init(dataHandler);
-      if (!initResult.isOk) console.error("Failed to initialize data SDK");
-    }
-
-    if (window.elementSdk) {
-      await window.elementSdk.init({
-        defaultConfig,
-        onConfigChange,
-        mapToCapabilities: () => ({
-          recolorables: [],
-          borderables: [],
-          fontEditable: undefined,
-          fontSizeable: undefined
-        }),
-        mapToEditPanelValues: (config) => new Map([
-          ["company_name", config.company_name || defaultConfig.company_name],
-          ["department_name", config.department_name || defaultConfig.department_name],
-          ["manager_name", config.manager_name || defaultConfig.manager_name],
-        ])
-      });
-    }
-
-    initializeDefaultEmployees();
-    setupEventListeners();
-    setupAdvancedHistoryEvents();
-    setupSummaryFilterEvents();
-    updateCurrentTime();
-    setInterval(updateCurrentTime, 1000);
-
-    document.getElementById('attendance-date').value = currentDate;
-    renderAttendanceList();
-
-    refreshDisplayRecords();
-    updateSummaryView();
-    updateHistoryView();
-    applyAdvancedFilters();
-  }
-
-  function initializeDefaultEmployees() {
-    employees = [
-      { id: '123452', name: 'Achirawit Jongsamai', position: 'Senior', department: 'Technical support', photo:'images/chi.jpg'},
-      { id: '123453', name: 'Chanatip Mongkolyos', position: 'Senior', department: 'Technical support', photo:'images/ice.jpg' },
-      { id: '123454', name: 'Chaiyot Ekpunyachai', position: 'Expert', department: 'Technical support', photo:'images/yot.jpg' },
-      { id: '123455', name: 'Isorn Srisoongnoen', position: 'Expert', department: 'Technical support', photo:'images/koe.jpg' },
-      { id: '123456', name: 'Kawinthida Kerdsritong', position: 'Senior', department: 'Cloud Engineer', photo:'images/diw.jpg' },
-      { id: '123457', name: 'Korn Tammapanit', position: 'Senior', department: 'Technical support', photo:'images/annant.jpg' },
-      { id: '123458', name: 'Kittithorn Jetsikatud', position: 'Senior', department: 'Technical support', photo:'images/new.jpg' },
-      { id: '123459', name: 'Massupa Suthapot', position: 'Senior', department: 'Technical support', photo:'images/kaew.jpg' },
-      { id: '123450', name: 'Natthapon Suwannapare', position: 'Senior', department: 'Cloud Engineer', photo:'images/diw1.jpg' },
-      { id: '123411', name: 'Phrmphon Phanitdi', position: 'GOS', department: 'Technical support', photo:'images/erk.jpg' },
-      { id: '123412', name: 'Paphawarin Naewpranit', position: 'GOS', department: 'Cloud Engineer', photo:'images/pocky.jpg' },
-      { id: '123413', name: 'Phanuphong Seehad', position: 'GOS', department: 'Technical support', photo:'images/den.jpg' },
-      { id: '123414', name: 'Panuwat Chomlit', position: 'Senior', department: 'Technical support', photo:'images/oat.jpg' },
-      { id: '123415', name: 'Pongwalai Usabuy', position: 'Senior', department: 'Technical support', photo:'images/nam.jpg' },
-      { id: '123416', name: 'Phachara Sapphayanon', position: 'Senior', department: 'Technical support', photo:'images/p.jpg' },
-      { id: '123417', name: 'Phanuphan Fairee', position: 'Senior', department: 'Technical support', photo:'images/ton.jpg' },
-      { id: '123418', name: 'Ronnayut Khantarasha', position: 'Specialist', department: 'Technical support', photo:'images/jack.jpg' },
-      { id: '123419', name: 'Sarun Thepnamwong', position: 'Expert', department: 'Cloud Engineer', photo:'images/nong.jpg' },
-      { id: '123420', name: 'Sawanya Pholreungwilaiseng', position: 'Senior', department: 'Technical support', photo:'images/pok.jpg' },
-      { id: '123421', name: 'Suchada Poonketkit', position: 'Senior', department: 'Cloud Engineer', photo:'images/da.jpg' },
-      { id: '123422', name: 'Soravee Mekchai', position: 'Expert', department: 'Technical support', photo:'images/fon.jpg' },
-      { id: '123423', name: 'Teerapat Emsem', position: 'Senior', department: 'Technical support', photo:'images/gob.jpg' },
-      { id: '123424', name: 'Teerachai Leewan', position: 'Expert', department: 'Technical support', photo:'images/tom.jpg' },
-      { id: '123425', name: 'Wathit Chantree', position: 'Senior', department: 'Technical support', photo:'images/thit.jpg' },
-      { id: '123426', name: 'Wisanpon Authasit', position: 'Senior', department: 'Technical support', photo:'images/bank.jpg' },
-      { id: '123427', name: 'Wisit Winyutrakul', position: 'Expert', department: 'Technical support', photo:'images/k.jpg' },
-      { id: '123428', name: 'Yuthasilp Chotdee', position: 'Expert', department: 'Technical support', photo:'images/tua.jpg' }
-    ];
-    renderEmployeesList();
-  }
-
-  function setupEventListeners() {
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-    });
-
-    document.getElementById('attendance-date').addEventListener('change', (e) => {
-      currentDate = e.target.value;
-      currentAttendance = {};
-      checkInTimes = {};
-      checkOutTimes = {};
-      renderAttendanceList();
-    });
-
-    document.getElementById('save-attendance-btn').addEventListener('click', saveAttendance);
-    document.getElementById('add-employee-form').addEventListener('submit', addEmployee);
-    document.getElementById('close-modal-btn').addEventListener('click', closeModal);
-  }
-
-  function switchTab(tabName) {
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.classList.remove('text-indigo-600','border-b-2','border-indigo-600');
-      btn.classList.add('text-gray-600');
-    });
-
-    const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
-    if (activeBtn) {
-      activeBtn.classList.add('text-indigo-600','border-b-2','border-indigo-600');
-      activeBtn.classList.remove('text-gray-600');
-    }
-
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
-    const activeTab = document.getElementById(`tab-${tabName}`);
-    if (activeTab) activeTab.classList.remove('hidden');
-
-    if (tabName === 'employees') renderEmployeesList();
-    if (tabName === 'history') { updateHistoryView(); applyAdvancedFilters(); }
-    if (tabName === 'summary') updateSummaryView();
-  }
-
-  function updateCurrentTime() {
-    const now = new Date();
-    const timeStrFull = now.toLocaleString('th-TH', {
-      year:'numeric', month:'long', day:'numeric',
-      hour:'2-digit', minute:'2-digit', second:'2-digit'
-    });
-    const timeStrShort = now.toLocaleTimeString('th-TH', {
-      hour:'2-digit', minute:'2-digit', second:'2-digit'
-    });
-
-    const timeElement = document.getElementById('current-time');
-    if (timeElement) timeElement.textContent = timeStrFull;
-
-    const timeInline = document.getElementById('current-time-inline');
-    if (timeInline) timeInline.textContent = timeStrShort;
-  }
-
-  function formatTimeHM(isoStr) {
-    if (!isoStr) return '-';
-    const d = new Date(isoStr);
-    if (isNaN(d)) return '-';
-    const hh = String(d.getHours()).padStart(2,'0');
-    const mm = String(d.getMinutes()).padStart(2,'0');
-    return `${hh}:${mm}`;
-  }
-
-  function renderAttendanceList() {
-    const container = document.getElementById('attendance-list');
-    container.innerHTML = '';
-
-    employees.forEach((employee) => {
-      const status = currentAttendance[employee.id] || '';
-      const statusClass = status ? `status-${status}` : '';
-
-      const card = document.createElement('div');
-      card.className = `bg-white rounded-lg shadow-md p-4 transition-all ${statusClass}`;
-
-      card.innerHTML = `
-        <div class="flex flex-col sm:flex-row gap-4">
-          <div class="flex items-center gap-4 flex-1">
-            <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-              <img src="${employee.photo || ''}" alt="photo" class="w-full h-full object-cover">
-            </div>
-            <div class="flex-1">
-              <div class="font-bold text-lg text-gray-800">หมายเลขพนักงาน ${employee.id}</div>
-              <div class="text-gray-600">${employee.name}</div>
-              <div class="text-sm text-gray-500">${employee.position} - ${employee.department}</div>
-            </div>
-          </div>
-
-          <div class="w-full sm:w-auto flex flex-col items-stretch sm:items-end gap-2">
-            <div class="flex flex-col md:flex-row md:flex-wrap gap-2 w-full md:justify-end">
-              <button class="btn-status w-full md:w-auto px-4 py-2 rounded-lg font-semibold ${status === 'present' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'}" onclick="setAttendance('${employee.id}','present')">เข้า office</button>
-              <button class="btn-status w-full md:w-auto px-4 py-2 rounded-lg font-semibold ${status === 'absent' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'}" onclick="setAttendance('${employee.id}','absent')">wfh</button>
-              <button class="btn-status w-full md:w-auto px-4 py-2 rounded-lg font-semibold ${status === 'leave' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700'}" onclick="setAttendance('${employee.id}','leave')">ลางาน</button>
-              <button class="btn-status w-full md:w-auto px-4 py-2 rounded-lg font-semibold ${status === 'late' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-700'}" onclick="setAttendance('${employee.id}','late')">เข้าสาย</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-3">
-          <textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" rows="2" placeholder="หมายเหตุ....." id="note-${employee.id}"></textarea>
-        </div>
-      `;
-
-      container.appendChild(card);
-    });
-
-    updateCounts();
-  }
-
-  function checkIn(employeeId) {
-    const now = new Date();
-    const [y,m,d] = currentDate.split('-');
-    const check = new Date(now);
-    check.setFullYear(parseInt(y), parseInt(m)-1, parseInt(d));
-    const iso = check.toISOString();
-
-    checkInTimes[employeeId] = iso;
-
-    const standard = new Date(check);
-    standard.setHours(9,0,0,0);
-
-    currentAttendance[employeeId] = (check <= standard) ? 'present' : 'late';
-    renderAttendanceList();
-  }
-
-  function checkOut(employeeId) {
-    const now = new Date();
-    const [y,m,d] = currentDate.split('-');
-    const check = new Date(now);
-    check.setFullYear(parseInt(y), parseInt(m)-1, parseInt(d));
-    checkOutTimes[employeeId] = check.toISOString();
-    renderAttendanceList();
-  }
-
-  function setAttendance(employeeId, status) {
-    currentAttendance[employeeId] = status;
-    renderAttendanceList();
-  }
-
-  function updateCounts() {
-    const counts = { present:0, absent:0, leave:0, late:0 };
-    Object.values(currentAttendance).forEach(s => { if (counts[s] !== undefined) counts[s]++; });
-    document.getElementById('count-present').textContent = counts.present;
-    document.getElementById('count-absent').textContent = counts.absent;
-    document.getElementById('count-leave').textContent = counts.leave;
-    document.getElementById('count-late').textContent = counts.late;
-  }
-
-  async function saveAttendance() {
-    const btn = document.getElementById('save-attendance-btn');
-    const loading = btn.querySelector('.loading');
-    loading.classList.add('active');
-    btn.disabled = true;
-
-    const timestamp = new Date().toISOString();
-    const newRecords = [];
-
-    // สร้างบันทึกสำหรับพนักงานแต่ละคน
-    for (const employee of employees) {
-      let status = currentAttendance[employee.id] || '';
-      const note = document.getElementById(`note-${employee.id}`)?.value || '';
-      const checkInTime = checkInTimes[employee.id] || '';
-      const checkOutTime = checkOutTimes[employee.id] || '';
-
-      // ตรวจสอบสถานะการเช็คอิน
-      if (!status && checkInTime) {
-        const dIn = new Date(checkInTime);
-        const standard = new Date(dIn);
-        standard.setHours(9,0,0,0);
-        status = dIn <= standard ? 'present' : 'late';
-      }
-
-      // ถ้าไม่มีข้อมูลการเช็คชื่อ ต้องตั้งสถานะเป็น 'absent'
-      if (!status && !checkInTime && !checkOutTime) {
-        status = 'absent';
-      }
-
-      let workHours = '';
-      if (checkInTime && checkOutTime) {
-        const diffMs = new Date(checkOutTime) - new Date(checkInTime);
-        if (diffMs > 0) workHours = (diffMs / (1000*60*60)).toFixed(2);
-      }
-
-      const record = {
-        employee_id: employee.id,
-        attendance_date: currentDate,
-        status,
-        note,
-        timestamp,
-        check_in_time: checkInTime,
-        check_out_time: checkOutTime,
-        work_hours: workHours
-      };
-
-      attendanceRecords.push(record);
-      newRecords.push(record);
-    }
-
-    // สร้างข้อมูลสำหรับส่งไปยัง Google Sheets
-    const sheetRows = newRecords.map(r => ({
-      emp_id: r.employee_id,
-      full_name: (employees.find(e => e.id === r.employee_id)?.name) || "",
-      status: r.status,               // present/absent/leave/late
-      location: "Office",             // จะเปลี่ยนเป็น GPS ก็ได้
-      note: r.note || "",
-      device: navigator.userAgent
-    }));
-
-    // ส่งข้อมูลไปยัง Google Sheets
-    if (sheetRows.length > 0) {
-      const ok = await sendToGoogleSheet(sheetRows);
-      if (!ok) alert("ส่งข้อมูลเข้า Google Sheet ไม่สำเร็จ (ดู Console)");
-    }
-
-    loading.classList.remove('active');
-    btn.disabled = false;
-
-    // แสดงผลสำเร็จ
-    showSuccessModal();
-  }
-
-
-  function showSuccessModal() {
-    const counts = { present:0, absent:0, leave:0, late:0 };
-    Object.values(currentAttendance).forEach(s => { if (counts[s] !== undefined) counts[s]++; });
-    const total = Object.values(counts).reduce((a,b)=>a+b,0);
-    const percentage = total > 0 ? ((counts.present / total) * 100).toFixed(1) : 0;
-
-    const summary = `
-      <div class="text-left space-y-2">
-        <p><strong>วันที่:</strong> ${new Date(currentDate).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})}</p>
-        <p><strong>เข้า office:</strong> ${counts.present} คน</p>
-        <p><strong>wfh:</strong> ${counts.absent} คน</p>
-        <p><strong>ลางาน:</strong> ${counts.leave} คน</p>
-        <p><strong>เข้าสาย:</strong> ${counts.late} คน</p>
-        <p class="text-xl font-bold text-indigo-600 mt-3">เปอร์เซ็นต์เข้า office: ${percentage}%</p>
-      </div>
-    `;
-
-    document.getElementById('modal-summary').innerHTML = summary;
-    document.getElementById('success-modal').classList.add('active');
-
-    currentAttendance = {};
-    checkInTimes = {};
-    checkOutTimes = {};
-    renderAttendanceList();
-  }
-
-  function closeModal() {
-    document.getElementById('success-modal').classList.remove('active');
-  }
-
-  async function addEmployee(e) {
-    e.preventDefault();
-    const btn = e.target.querySelector('button[type="submit"]');
-    const loading = btn.querySelector('.loading');
-    loading.classList.add('active');
-    btn.disabled = true;
-
-    const id = document.getElementById('new-employee-id').value.trim();
-    const name = document.getElementById('new-employee-name').value.trim();
-    const position = document.getElementById('new-employee-position').value.trim();
-    const department = document.getElementById('new-employee-department').value.trim();
-
-    employees.push({ id, name, position, department, photo: '' });
-
-    document.getElementById('add-employee-form').reset();
-    renderEmployeesList();
-    renderAttendanceList();
-
-    loading.classList.remove('active');
-    btn.disabled = false;
-
-    showToast("เพิ่มพนักงานเรียบร้อยแล้ว");
-  }
-
-  function renderEmployeesList() {
-    const container = document.getElementById('employees-list');
-    if (!container) return;
-    container.innerHTML = '';
-
-    employees.forEach((employee, index) => {
-      const card = document.createElement('div');
-      card.className = 'bg-gray-50 rounded-lg p-4 flex items-center gap-4';
-
-      card.innerHTML = `
-        <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-          <img src="${employee.photo || ''}" alt="photo" class="w-full h-full object-cover">
-        </div>
-        <div class="flex-1">
-          <div class="font-bold text-gray-800">หมายเลขพนักงาน ${employee.id}</div>
-          <div class="text-gray-600">${employee.name}</div>
-          <div class="text-sm text-gray-500">${employee.position} - ${employee.department}</div>
-        </div>
-        <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold" onclick="deleteEmployee(${index})">ลบ</button>
-      `;
-
-      container.appendChild(card);
-    });
-  }
-
-  function deleteEmployee(index) {
-    employees.splice(index, 1);
-    renderEmployeesList();
-    renderAttendanceList();
-    showToast("ลบพนักงานเรียบร้อยแล้ว");
-  }
-
-  function showToast(message) {
-    const toast = document.createElement('div');
-    toast.className = 'fixed top-4 right-4 bg-indigo-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-  }
-
-  function formatDateThai(dateStr) {
-    if (!dateStr) return '-';
-    const d = new Date(dateStr);
-    if (isNaN(d)) return dateStr;
-    const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
-  }
-
-  function getDatesInRange(startStr, endStr) {
-    const result = [];
-    if (!startStr || !endStr) return result;
-    const start = new Date(startStr);
-    const end = new Date(endStr);
-    if (isNaN(start) || isNaN(end)) return result;
-
-    let s = start, e = end;
-    if (s > e) { const tmp = s; s = e; e = tmp; }
-    for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) result.push(new Date(d));
-    return result;
-  }
-
-  function refreshDisplayRecords() {
-    displayRecords = attendanceRecords.map(r => {
-      const emp = employees.find(e => e.id === r.employee_id);
-      const name = emp ? emp.name : r.employee_id;
-      const dept = emp ? emp.department : '';
-      const dateStr = r.attendance_date || (r.timestamp ? r.timestamp.split('T')[0] : '');
-      return {
-        empId: r.employee_id,
-        name,
-        dept,
-        status: (r.status || '').toLowerCase(),
-        date: dateStr,
-        timestamp: r.timestamp || (dateStr ? dateStr + ' 00:00' : ''),
-        checkInTime: r.check_in_time || '',
-        checkOutTime: r.check_out_time || '',
-        workHours: r.work_hours || ''
-      };
-    });
-    advFilteredRecords = [...displayRecords];
-  }
-
-  function setupSummaryFilterEvents() {
-    const startEl = document.getElementById('summary-start-date');
-    const endEl = document.getElementById('summary-end-date');
-    const resetEl = document.getElementById('summary-range-reset');
-
-    if (startEl) startEl.addEventListener('change', () => { summaryStartDate = startEl.value; updateSummaryView(); });
-    if (endEl) endEl.addEventListener('change', () => { summaryEndDate = endEl.value; updateSummaryView(); });
-
-    if (resetEl) resetEl.addEventListener('click', () => {
-      summaryStartDate = ''; summaryEndDate = '';
-      if (startEl) startEl.value = '';
-      if (endEl) endEl.value = '';
-      updateSummaryView();
-    });
-  }
-
-  function updateSummaryView() {
-    let rangeStart, rangeEnd;
-    let rangeLabelText = '';
-
-    if (!summaryStartDate && !summaryEndDate) {
-      rangeStart = todayISO;
-      rangeEnd = todayISO;
-      rangeLabelText = `ช่วงที่เลือก: วันนี้ (${formatDateThai(todayISO)})`;
-    } else {
-      rangeStart = summaryStartDate || summaryEndDate;
-      rangeEnd = summaryEndDate || summaryStartDate;
-      if (rangeStart > rangeEnd) { const tmp = rangeStart; rangeStart = rangeEnd; rangeEnd = tmp; }
-      rangeLabelText = `ช่วงที่เลือก: ${formatDateThai(rangeStart)} - ${formatDateThai(rangeEnd)}`;
-    }
-
-    const rangeLabelEl = document.getElementById('summary-range-label');
-    if (rangeLabelEl) rangeLabelEl.textContent = rangeLabelText;
-
-    const recsForSummary = displayRecords.filter(r => {
-      if (!r.date) return false;
-      if (rangeStart && r.date < rangeStart) return false;
-      if (rangeEnd && r.date > rangeEnd) return false;
-      return true;
-    });
-
-    const totalEmp = new Set(recsForSummary.map(r => r.empId)).size;
-    const presentCnt = recsForSummary.filter(r => r.status === 'present').length;
-    const lateCnt = recsForSummary.filter(r => r.status === 'late').length;
-    const leaveCnt = recsForSummary.filter(r => r.status === 'leave').length;
-    const absentCnt = recsForSummary.filter(r => r.status === 'absent').length;
-
-    document.getElementById('sum-total-emp').textContent = totalEmp || '-';
-    document.getElementById('sum-present-today').textContent = presentCnt;
-    document.getElementById('sum-late-today').textContent = lateCnt;
-    document.getElementById('sum-leave-absent-today').textContent = leaveCnt + absentCnt;
-
-    const statusCanvas = document.getElementById('chart-status-today');
-    if (statusCanvas && typeof Chart !== 'undefined') {
-      const ctxStatus = statusCanvas.getContext('2d');
-      if (chartStatusTodayInstance) chartStatusTodayInstance.destroy();
-      chartStatusTodayInstance = new Chart(ctxStatus, {
-        type: 'doughnut',
-        data: {
-          labels: ['ตรงเวลา','มาสาย','ลา','ขาด'],
-          datasets: [{ data: [presentCnt, lateCnt, leaveCnt, absentCnt] }]
-        },
-        options: {
-          plugins: { legend: { position: 'bottom' } },
-          maintainAspectRatio: false
+      
+      unlockBtn.addEventListener('click', () => {
+        const enteredCode = Array.from(inputs).map(i => i.value).join('');
+        const secretCode = config.secret_code || defaultConfig.secret_code;
+        
+        if (enteredCode === secretCode) {
+          document.getElementById('lock-screen').classList.add('hidden');
+          document.getElementById('main-content').classList.remove('hidden');
+          createFallingHearts();
+        } else {
+          errorMsg.classList.remove('hidden');
+          document.getElementById('code-inputs').classList.add('shake');
+          setTimeout(() => {
+            document.getElementById('code-inputs').classList.remove('shake');
+          }, 500);
+          inputs.forEach(i => i.value = '');
+          inputs[0].focus();
         }
       });
     }
-
-    const dateObjs = getDatesInRange(rangeStart, rangeEnd);
-    const labels = [];
-    const lateCounts = [];
-
-    dateObjs.forEach(d => {
-      const iso = d.toISOString().slice(0,10);
-      labels.push(`${d.getDate()}/${d.getMonth()+1}`);
-      lateCounts.push(displayRecords.filter(r => r.date === iso && r.status === 'late').length);
-    });
-
-    const lateCanvas = document.getElementById('chart-late-trend');
-    if (lateCanvas && typeof Chart !== 'undefined') {
-      const ctxLate = lateCanvas.getContext('2d');
-      if (lateTrendChartInstance) lateTrendChartInstance.destroy();
-      lateTrendChartInstance = new Chart(ctxLate, {
-        type: 'bar',
-        data: { labels, datasets: [{ label: 'จำนวนมาสาย', data: lateCounts }] },
-        options: { plugins: { legend: { display:false } }, maintainAspectRatio:false, scales: { y: { beginAtZero:true, ticks:{ stepSize:1 } } } }
-      });
-    }
-
-    const tbody = document.getElementById('summary-dept-tbody');
-    if (tbody) {
-      const deptMap = {};
-      recsForSummary.forEach(rec => {
-        const dept = rec.dept || '-';
-        if (!deptMap[dept]) deptMap[dept] = { present:0, late:0, leave:0, absent:0 };
-        if (deptMap[dept][rec.status] !== undefined) deptMap[dept][rec.status]++;
-      });
-
-      tbody.innerHTML = '';
-      const depts = Object.keys(deptMap);
-      if (!depts.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="px-3 py-4 text-center text-xs text-gray-400">ยังไม่มีข้อมูลในช่วงวันที่ที่เลือก</td></tr>`;
-        return;
+    
+    // Game functionality
+    function initializeGame() {
+      const board = document.getElementById('game-board');
+      const pairs = [...emojis, ...emojis];
+      
+      // Shuffle cards
+      for (let i = pairs.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
       }
-
-      depts.forEach(dept => {
-        const d = deptMap[dept];
-        const total = d.present + d.late + d.leave + d.absent;
-        const attend = d.present + d.late;
-        const percent = total ? ((attend/total)*100).toFixed(1) : '0.0';
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="px-3 py-2 text-gray-800 font-medium">${dept}</td>
-          <td class="px-3 py-2 text-right text-emerald-600 font-semibold">${d.present}</td>
-          <td class="px-3 py-2 text-right text-amber-500 font-semibold">${d.late}</td>
-          <td class="px-3 py-2 text-right text-sky-600 font-semibold">${d.leave}</td>
-          <td class="px-3 py-2 text-right text-rose-500 font-semibold">${d.absent}</td>
-          <td class="px-3 py-2 text-right text-gray-800 font-semibold">${percent}%</td>
+      
+      board.innerHTML = '';
+      gameState.cards = [];
+      gameState.flippedCards = [];
+      gameState.matchedPairs = 0;
+      gameState.score = 0;
+      gameState.timer = 60;
+      gameState.isPlaying = true;
+      
+      document.getElementById('score').textContent = '0';
+      document.getElementById('timer').textContent = '60';
+      
+      pairs.forEach((emoji, index) => {
+        const card = document.createElement('div');
+        card.className = 'card-flip aspect-square cursor-pointer';
+        card.dataset.index = index;
+        card.dataset.emoji = emoji;
+        card.innerHTML = `
+          <div class="card-inner w-full h-full relative">
+            <div class="card-front w-full h-full bg-gradient-to-br from-pink-400 to-pink-600 rounded-xl flex items-center justify-center text-3xl shadow-lg">
+              ?
+            </div>
+            <div class="card-back w-full h-full bg-white rounded-xl flex items-center justify-center text-3xl shadow-lg">
+              ${emoji}
+            </div>
+          </div>
         `;
-        tbody.appendChild(tr);
+        
+        card.addEventListener('click', () => flipCard(card));
+        board.appendChild(card);
+        gameState.cards.push(card);
       });
+      
+      // Start timer
+      if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+      gameState.timerInterval = setInterval(() => {
+        if (!gameState.isPlaying) return;
+        gameState.timer--;
+        document.getElementById('timer').textContent = gameState.timer;
+        
+        if (gameState.timer <= 0) {
+          gameState.isPlaying = false;
+          clearInterval(gameState.timerInterval);
+        }
+      }, 1000);
     }
-  }
-
-  function updateHistoryView() {
-    renderAdvancedHistoryTable();
-  }
-
-  function setupAdvancedHistoryEvents() {
-    const dateEl = document.getElementById('history-date');
-    const statusEl = document.getElementById('history-status');
-    const deptEl = document.getElementById('history-dept');
-    const searchEl = document.getElementById('history-search');
-    const prevEl = document.getElementById('history-prev');
-    const nextEl = document.getElementById('history-next');
-
-    if (dateEl) dateEl.addEventListener('change', applyAdvancedFilters);
-    if (statusEl) statusEl.addEventListener('change', applyAdvancedFilters);
-    if (deptEl) deptEl.addEventListener('change', applyAdvancedFilters);
-    if (searchEl) searchEl.addEventListener('input', applyAdvancedFilters);
-
-    if (prevEl) prevEl.addEventListener('click', () => { if (advCurrentPage > 1) { advCurrentPage--; renderAdvancedHistoryTable(); } });
-    if (nextEl) nextEl.addEventListener('click', () => {
-      const totalPages = Math.max(1, Math.ceil(advFilteredRecords.length / ADV_PAGE_SIZE));
-      if (advCurrentPage < totalPages) { advCurrentPage++; renderAdvancedHistoryTable(); }
-    });
-  }
-
-  function applyAdvancedFilters() {
-    const dateVal = document.getElementById('history-date')?.value || '';
-    const statusVal = document.getElementById('history-status')?.value || '';
-    const deptVal = document.getElementById('history-dept')?.value || '';
-    const searchVal = (document.getElementById('history-search')?.value || '').trim().toLowerCase();
-
-    advFilteredRecords = displayRecords.filter(rec => {
-      if (dateVal && rec.date !== dateVal) return false;
-      if (statusVal && rec.status !== statusVal) return false;
-      if (deptVal && rec.dept !== deptVal) return false;
-      if (searchVal) {
-        const text = (rec.empId + ' ' + rec.name).toLowerCase();
-        if (!text.includes(searchVal)) return false;
+    
+    function flipCard(card) {
+      if (!gameState.isPlaying) return;
+      if (gameState.flippedCards.length >= 2) return;
+      if (card.classList.contains('flipped')) return;
+      if (card.classList.contains('matched')) return;
+      
+      card.classList.add('flipped');
+      gameState.flippedCards.push(card);
+      
+      if (gameState.flippedCards.length === 2) {
+        checkMatch();
       }
-      return true;
-    });
-
-    advCurrentPage = 1;
-    renderAdvancedHistoryTable();
-  }
-
-  const STATUS_TEXT = { present:'เข้า office', late:'เข้าสาย', leave:'ลา', absent:'wfh' };
-  const STATUS_BADGE = {
-    present: 'inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700',
-    late:    'inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700',
-    leave:   'inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-700',
-    absent:  'inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-700',
-  };
-
-  function renderAdvancedHistoryTable() {
-    const tbody = document.getElementById('history-tbody');
-    if (!tbody) return;
-
-    tbody.innerHTML = '';
-    const total = advFilteredRecords.length;
-    const totalPages = Math.max(1, Math.ceil(total / ADV_PAGE_SIZE));
-    if (advCurrentPage > totalPages) advCurrentPage = totalPages;
-
-    const startIdx = (advCurrentPage - 1) * ADV_PAGE_SIZE;
-    const pageData = advFilteredRecords.slice(startIdx, startIdx + ADV_PAGE_SIZE);
-
-    if (!pageData.length) {
-      tbody.innerHTML = '<tr><td colspan="8" class="px-3 py-6 text-center text-sm text-gray-400">ไม่มีข้อมูลประวัติการเช็คชื่อในเงื่อนไขที่เลือก</td></tr>';
-    } else {
-      pageData.forEach(rec => {
-        const inStr = formatTimeHM(rec.checkInTime);
-        const outStr = formatTimeHM(rec.checkOutTime);
-        const workStr = rec.workHours ? `${rec.workHours} ชม.` : '-';
-
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-gray-50';
-        tr.innerHTML = `
-          <td class="px-3 py-2 text-gray-700">${formatDateThai(rec.date)}</td>
-          <td class="px-3 py-2 text-gray-700">${rec.empId}</td>
-          <td class="px-3 py-2 text-gray-800 font-medium">${rec.name}</td>
-          <td class="px-3 py-2 text-gray-600">${rec.dept || '-'}</td>
-          <td class="px-3 py-2 text-gray-700">${inStr}</td>
-          <td class="px-3 py-2 text-gray-700">${outStr}</td>
-          <td class="px-3 py-2"><span class="${STATUS_BADGE[rec.status] || ''}">${STATUS_TEXT[rec.status] || rec.status}</span></td>
-          <td class="px-3 py-2 text-right text-gray-800 font-semibold">${workStr}</td>
-        `;
-        tbody.appendChild(tr);
+    }
+    
+    function checkMatch() {
+      const [card1, card2] = gameState.flippedCards;
+      const match = card1.dataset.emoji === card2.dataset.emoji;
+      
+      if (match) {
+        gameState.matchedPairs++;
+        gameState.score += 10;
+        document.getElementById('score').textContent = gameState.score;
+        
+        card1.classList.add('matched');
+        card2.classList.add('matched');
+        gameState.flippedCards = [];
+        
+        // Check win condition
+        if (gameState.matchedPairs === 8) {
+          gameState.isPlaying = false;
+          clearInterval(gameState.timerInterval);
+          setTimeout(() => {
+            createConfetti();
+            document.getElementById('game-section').classList.add('hidden');
+            document.getElementById('message-section').classList.remove('hidden');
+          }, 500);
+        }
+      } else {
+        setTimeout(() => {
+          card1.classList.remove('flipped');
+          card2.classList.remove('flipped');
+          gameState.flippedCards = [];
+        }, 800);
+      }
+    }
+    
+    // Navigation
+    function setupNavigation() {
+      document.getElementById('start-journey-btn').addEventListener('click', () => {
+        document.getElementById('welcome-section').classList.add('hidden');
+        document.getElementById('game-section').classList.remove('hidden');
+        initializeGame();
+      });
+      
+      document.getElementById('restart-game-btn').addEventListener('click', () => {
+        initializeGame();
+      });
+      
+      document.getElementById('surprise-btn').addEventListener('click', () => {
+        document.getElementById('message-section').classList.add('hidden');
+        document.getElementById('surprise-section').classList.remove('hidden');
+        createFallingHearts();
+        createConfetti();
+        
+        // Pulse animation for heart
+        const heart = document.getElementById('heart-explosion');
+        heart.classList.add('pulse-heart');
+      });
+      
+      document.getElementById('replay-btn').addEventListener('click', () => {
+        document.getElementById('surprise-section').classList.add('hidden');
+        document.getElementById('welcome-section').classList.remove('hidden');
       });
     }
-
-    const summaryText = document.getElementById('history-summary-text');
-    if (summaryText) summaryText.textContent = `แสดง ${pageData.length ? startIdx + 1 : 0}–${startIdx + pageData.length} จากทั้งหมด ${total} รายการ`;
-
-    const pageLabel = document.getElementById('history-page-label');
-    if (pageLabel) pageLabel.textContent = `หน้า ${advCurrentPage} / ${totalPages}`;
-
-    const prevBtn = document.getElementById('history-prev');
-    const nextBtn = document.getElementById('history-next');
-    if (prevBtn) prevBtn.disabled = advCurrentPage === 1;
-    if (nextBtn) nextBtn.disabled = advCurrentPage === totalPages;
-  }
-
-  // export ฟังก์ชันที่เรียกจาก HTML
-  window.setAttendance = setAttendance;
-  window.deleteEmployee = deleteEmployee;
-  window.checkIn = checkIn;
-  window.checkOut = checkOut;
-
-  document.addEventListener('DOMContentLoaded', initializeApp);
-</script>
-
-</body>
+    
+    // Config change handler
+    async function onConfigChange(newConfig) {
+      config = { ...defaultConfig, ...newConfig };
+      
+      // Update greeting name
+      const loverName = config.lover_name || defaultConfig.lover_name;
+      document.getElementById('greeting-name').textContent = `สวัสดี ${loverName}`;
+      document.getElementById('final-name').textContent = `${loverName} ของฉัน`;
+      
+      // Update love message
+      const loveMessage = config.love_message || defaultConfig.love_message;
+      document.getElementById('love-message-text').innerHTML = loveMessage.replace(/\n/g, '<br>');
+      
+      // Update colors
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const buttons = document.querySelectorAll('.btn-primary');
+      buttons.forEach(btn => {
+        btn.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${config.accent_color || defaultConfig.accent_color} 100%)`;
+      });
+    }
+    
+    // Map to capabilities
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.secondary_color || defaultConfig.secondary_color,
+            set: (value) => {
+              config.secondary_color = value;
+              window.elementSdk.setConfig({ secondary_color: value });
+            }
+          },
+          {
+            get: () => config.surface_color || defaultConfig.surface_color,
+            set: (value) => {
+              config.surface_color = value;
+              window.elementSdk.setConfig({ surface_color: value });
+            }
+          },
+          {
+            get: () => config.text_color || defaultConfig.text_color,
+            set: (value) => {
+              config.text_color = value;
+              window.elementSdk.setConfig({ text_color: value });
+            }
+          },
+          {
+            get: () => config.primary_color || defaultConfig.primary_color,
+            set: (value) => {
+              config.primary_color = value;
+              window.elementSdk.setConfig({ primary_color: value });
+            }
+          },
+          {
+            get: () => config.accent_color || defaultConfig.accent_color,
+            set: (value) => {
+              config.accent_color = value;
+              window.elementSdk.setConfig({ accent_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+    
+    // Map to edit panel values
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ['secret_code', config.secret_code || defaultConfig.secret_code],
+        ['lover_name', config.lover_name || defaultConfig.lover_name],
+        ['love_message', config.love_message || defaultConfig.love_message]
+      ]);
+    }
+    
+    // Initialize app
+    function init() {
+      createFloatingHearts();
+      setupLockScreen();
+      setupNavigation();
+      
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities,
+          mapToEditPanelValues
+        });
+      }
+    }
+    
+    init();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cd1725937827b56',t:'MTc3MDk1NTUxOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
-
