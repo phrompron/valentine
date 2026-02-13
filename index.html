@@ -101,6 +101,19 @@
       box-shadow: 0 10px 20px rgba(236, 72, 153, 0.4);
     }
     .btn-primary:active { transform: translateY(0); }
+
+    /* ✅ Typewriter cursor */
+    .tw-cursor::after{
+      content:"|";
+      margin-left:4px;
+      animation: twblink 0.8s infinite;
+      color: rgba(190, 24, 93, 0.9);
+      font-weight: 700;
+    }
+    @keyframes twblink { 0%, 50% {opacity:1;} 51%,100%{opacity:0;} }
+
+    /* ✅ Gallery */
+    .gallery-img { user-select:none; -webkit-user-drag:none; }
   </style>
 
   <style>body { box-sizing: border-box; }</style>
@@ -121,10 +134,18 @@
         <p class="text-pink-600 mb-6">กรุณาใส่รหัสเพื่อเปิดดู</p>
 
         <div class="flex justify-center gap-2 mb-4" id="code-inputs">
-          <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-pink-300 bg-white/50 text-pink-800" data-index="0">
-          <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-pink-300 bg-white/50 text-pink-800" data-index="1">
-          <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-pink-300 bg-white/50 text-pink-800" data-index="2">
-          <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-pink-300 bg-white/50 text-pink-800" data-index="3">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                 class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-pink-300 bg-white/50 text-pink-800"
+                 data-index="0" aria-label="code digit 1">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                 class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-pink-300 bg-white/50 text-pink-800"
+                 data-index="1" aria-label="code digit 2">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                 class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-pink-300 bg-white/50 text-pink-800"
+                 data-index="2" aria-label="code digit 3">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                 class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-pink-300 bg-white/50 text-pink-800"
+                 data-index="3" aria-label="code digit 4">
         </div>
 
         <p id="error-message" class="text-red-500 text-sm mb-4 hidden">รหัสไม่ถูกต้อง ลองใหม่นะ 💔</p>
@@ -133,7 +154,7 @@
           เปิดข้อความ 💌
         </button>
 
-        <p class="text-pink-400 text-xs mt-4">💡 phrmphon</p>
+        <p class="text-pink-400 text-xs mt-4">E💕O</p>
       </div>
     </div>
 
@@ -149,7 +170,7 @@
             happy valentine's day
           </h1>
 
-          <p class="text-pink-600 text-lg">มีเซอร์ไพรส์รอคุณอยู่...</p>
+          <p class="text-pink-600 text-lg">มีอะไรจะเซอร์ไพรส์โอมด้วย...</p>
 
           <!-- ✅ Days Counter (X ปี Y เดือน Z วัน) -->
           <div class="mt-4 mb-8">
@@ -185,6 +206,39 @@
         </div>
       </section>
 
+      <!-- ✅ Gallery Section -->
+      <section id="gallery-section" class="hidden min-h-full w-full flex items-center justify-center p-4">
+        <div class="glass rounded-3xl p-6 max-w-lg w-full text-center shadow-2xl">
+          <h2 class="text-2xl font-bold text-pink-800 mb-2">📸 ความทรงจำของเรา</h2>
+          <p class="text-pink-600 mb-4">เลื่อนดูรูปก่อน แล้วค่อยไปอ่านข้อความนะ 💗</p>
+
+          <div class="relative rounded-2xl overflow-hidden bg-white/30">
+            <img id="gallery-main" class="w-full h-72 object-cover gallery-img" alt="memory" />
+
+            <button id="gallery-prev"
+              class="absolute left-3 top-1/2 -translate-y-1/2 glass w-10 h-10 rounded-full flex items-center justify-center text-pink-800 hover:bg-white/40 transition"
+              aria-label="previous photo">
+              ‹
+            </button>
+            <button id="gallery-next"
+              class="absolute right-3 top-1/2 -translate-y-1/2 glass w-10 h-10 rounded-full flex items-center justify-center text-pink-800 hover:bg-white/40 transition"
+              aria-label="next photo">
+              ›
+            </button>
+          </div>
+
+          <div id="gallery-dots" class="flex justify-center gap-2 mt-4"></div>
+          <div id="gallery-thumbs" class="grid grid-cols-5 gap-2 mt-4"></div>
+
+          <div class="mt-6 flex flex-col gap-3">
+            <button id="to-message-btn" class="btn-primary text-white font-semibold py-3 px-6 rounded-full">
+              ไปอ่านข้อความ 💌
+            </button>
+            <button id="gallery-skip-btn" class="text-pink-600 underline text-sm">ข้ามรูป ไปเลย</button>
+          </div>
+        </div>
+      </section>
+
       <!-- Message Section -->
       <section id="message-section" class="hidden min-h-full w-full flex items-center justify-center p-4">
         <div class="glass rounded-3xl p-8 max-w-lg w-full text-center shadow-2xl relative overflow-hidden">
@@ -194,10 +248,8 @@
           <div class="text-7xl mb-6 pulse-heart">💖</div>
           <h2 class="script-font text-4xl text-pink-800 mb-6">Happy Valentine's Day</h2>
 
-          <p id="love-message-text" class="text-pink-700 text-lg leading-relaxed mb-8">
-            รักนะ ขอบคุณที่อยู่ด้วยกันมาตลอด<br>
-            อยู่ตามใจเอิร์กไปนานๆน๊าาา💕
-          </p>
+          <!-- ✅ Typewriter จะมาเขียนที่นี่ -->
+          <p id="love-message-text" class="text-pink-700 text-lg leading-relaxed mb-8"></p>
 
           <div class="flex justify-center gap-4">
             <button id="surprise-btn" class="btn-primary text-white font-semibold py-3 px-6 rounded-full">
@@ -214,7 +266,7 @@
       <section id="surprise-section" class="hidden min-h-full w-full flex items-center justify-center p-4">
         <div class="text-center">
           <div id="heart-explosion" class="text-9xl mb-8">💝</div>
-          <h2 class="script-font text-5xl md:text-6xl text-pink-800 mb-4">รักนะ!</h2>
+          <h2 class="script-font text-5xl md:text-6xl text-pink-800 mb-4">รักโอมนะ</h2>
           <p id="final-name" class="text-2xl text-pink-600 mb-8">ขอตังค์หน่อย บช.เดิมเด้อ</p>
 
           <button id="replay-btn" class="glass text-pink-800 font-semibold py-3 px-8 rounded-full hover:bg-white/40 transition-all">
@@ -231,13 +283,22 @@
     const defaultConfig = {
       secret_code: '1502',
       lover_name: 'ที่รัก',
-      love_message: 'รักนะ ขอบคุณที่อยู่ด้วยกันมาตลอด อยู่ตามใจเอิร์กไปนานๆน๊าาา 💕',
-      relationship_start: '2024-02-15', 
+      love_message: 'รักนะ ขอบคุณที่อยู่ด้วยกันมาตลอด\nอยู่ตามใจเอิร์กไปนานๆน๊าาา 💕',
+      relationship_start: '2024-02-15',
       primary_color: '#ec4899',
       secondary_color: '#fce4ec',
       text_color: '#831843',
       accent_color: '#be185d',
-      surface_color: '#ffffff'
+      surface_color: '#ffffff',
+
+      // ✅ Gallery images (แก้เป็นรูปของคุณเอง)
+      gallery_images: [
+        'img/1.jpg',
+        'img/2.jpg',
+        'img/3.jpg',
+        'img/4.jpg',
+        'img/5.jpg'
+      ]
     };
 
     let config = { ...defaultConfig };
@@ -312,7 +373,6 @@
     function diffYMD(startDateStr) {
       if (!startDateStr) return { years: 0, months: 0, days: 0, totalDays: 0 };
 
-      // ตั้งเป็นเที่ยงวันเพื่อลดปัญหา timezone/วันเพี้ยน
       const start = new Date(startDateStr + 'T12:00:00');
       const now = new Date();
       const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
@@ -320,17 +380,14 @@
       if (isNaN(start.getTime())) return { years: 0, months: 0, days: 0, totalDays: 0 };
       if (end < start) return { years: 0, months: 0, days: 0, totalDays: 0 };
 
-      // total days
       const totalDays = Math.floor((end - start) / (1000 * 60 * 60 * 24));
 
-      // คำนวณแบบ calendar: ปี/เดือน/วัน
       let y = end.getFullYear() - start.getFullYear();
       let m = end.getMonth() - start.getMonth();
       let d = end.getDate() - start.getDate();
 
       if (d < 0) {
-        // ยืมวันจากเดือนก่อนหน้า
-        const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0); // วันสุดท้ายของเดือนก่อน
+        const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
         d += prevMonth.getDate();
         m -= 1;
       }
@@ -347,7 +404,6 @@
       const parts = [];
       if (th.years) parts.push(`${th.years.toLocaleString('th-TH')} ปี`);
       if (th.months) parts.push(`${th.months.toLocaleString('th-TH')} เดือน`);
-      // วันโชว์เสมอให้ครบรูปแบบ
       parts.push(`${th.days.toLocaleString('th-TH')} วัน`);
       return parts.join(' ');
     }
@@ -368,13 +424,105 @@
       const diff = diffYMD(startDate);
       const pretty = formatYMD(diff);
 
-      // บรรทัดหลัก: X ปี Y เดือน Z วัน
       el.textContent = `เราคบกันมาแล้ว ${pretty}`;
 
-      // บรรทัดรอง: รวมทั้งหมด N วัน + วันที่เริ่มคบ
       if (hint) {
         hint.textContent = `รวมทั้งหมด ${diff.totalDays.toLocaleString('th-TH')} วัน • เริ่มคบกัน: ${startDate}`;
       }
+    }
+
+    // -------------------- ✅ Typewriter --------------------
+    function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+    async function typewriterHTML(el, text, speed = 28) {
+      if (!el) return;
+      el.classList.add('tw-cursor');
+      el.innerHTML = '';
+      const safe = (text || '').toString();
+
+      const parts = safe.split('\n');
+      for (let li = 0; li < parts.length; li++) {
+        const line = parts[li];
+        for (let i = 0; i < line.length; i++) {
+          el.innerHTML += line[i];
+          await sleep(speed);
+        }
+        if (li < parts.length - 1) el.innerHTML += '<br>';
+      }
+
+      await sleep(500);
+      el.classList.remove('tw-cursor');
+    }
+
+    function showMessageWithTypewriter() {
+      document.getElementById('gallery-section').classList.add('hidden');
+      document.getElementById('message-section').classList.remove('hidden');
+
+      const el = document.getElementById('love-message-text');
+      const msg = (config.love_message || defaultConfig.love_message || '')
+        .replace(/<br\s*\/?>/gi, '\n');
+
+      typewriterHTML(el, msg, 26);
+    }
+
+    // -------------------- ✅ Gallery --------------------
+    let galleryState = { images: [], idx: 0 };
+
+    function getGalleryImages() {
+      const imgs = config.gallery_images || defaultConfig.gallery_images || [];
+      return Array.isArray(imgs) ? imgs.filter(Boolean) : [];
+    }
+
+    function renderGallery() {
+      const main = document.getElementById('gallery-main');
+      const dots = document.getElementById('gallery-dots');
+      const thumbs = document.getElementById('gallery-thumbs');
+
+      galleryState.images = getGalleryImages();
+      if (!galleryState.images.length) {
+        galleryState.images = ['https://placehold.co/900x600/png?text=Add+your+photos'];
+      }
+      galleryState.idx = Math.max(0, Math.min(galleryState.idx, galleryState.images.length - 1));
+
+      const current = galleryState.images[galleryState.idx];
+      main.src = current;
+
+      dots.innerHTML = '';
+      galleryState.images.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = `w-2.5 h-2.5 rounded-full transition ${i === galleryState.idx ? 'bg-pink-700' : 'bg-pink-300/70'}`;
+        dot.addEventListener('click', () => { galleryState.idx = i; renderGallery(); });
+        dots.appendChild(dot);
+      });
+
+      thumbs.innerHTML = '';
+      galleryState.images.forEach((src, i) => {
+        const b = document.createElement('button');
+        b.className = `rounded-xl overflow-hidden border-2 transition ${i === galleryState.idx ? 'border-pink-600' : 'border-transparent'}`;
+        b.innerHTML = `<img src="${src}" class="w-full h-14 object-cover gallery-img" alt="thumb ${i+1}">`;
+        b.addEventListener('click', () => { galleryState.idx = i; renderGallery(); });
+        thumbs.appendChild(b);
+      });
+    }
+
+    function showGallerySection() {
+      document.getElementById('game-section').classList.add('hidden');
+      document.getElementById('gallery-section').classList.remove('hidden');
+      renderGallery();
+    }
+
+    function setupGalleryControls() {
+      document.getElementById('gallery-prev').addEventListener('click', () => {
+        galleryState.idx = (galleryState.idx - 1 + galleryState.images.length) % galleryState.images.length;
+        renderGallery();
+      });
+      document.getElementById('gallery-next').addEventListener('click', () => {
+        galleryState.idx = (galleryState.idx + 1) % galleryState.images.length;
+        renderGallery();
+      });
+
+      document.getElementById('to-message-btn').addEventListener('click', showMessageWithTypewriter);
+      document.getElementById('gallery-skip-btn').addEventListener('click', showMessageWithTypewriter);
     }
 
     // Lock screen functionality
@@ -385,16 +533,25 @@
 
       inputs.forEach((input, index) => {
         input.addEventListener('input', (e) => {
+          // ✅ รับเฉพาะตัวเลข
+          e.target.value = e.target.value.replace(/\D/g, '');
+
           const value = e.target.value;
           if (value && index < inputs.length - 1) {
             inputs[index + 1].focus();
           }
+
+          // ✅ ถ้ากรอกครบ 4 หลัก กดปลดล็อคอัตโนมัติ
+          const entered = Array.from(inputs).map(i => i.value).join('');
+          if (entered.length === 4) unlockBtn.click();
         });
 
         input.addEventListener('keydown', (e) => {
           if (e.key === 'Backspace' && !e.target.value && index > 0) {
             inputs[index - 1].focus();
           }
+          // ✅ Enter ปลดล็อค
+          if (e.key === 'Enter') unlockBtn.click();
         });
       });
 
@@ -423,7 +580,6 @@
       const board = document.getElementById('game-board');
       const pairs = [...emojis, ...emojis];
 
-      // Shuffle cards
       for (let i = pairs.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
@@ -461,7 +617,6 @@
         gameState.cards.push(card);
       });
 
-      // Start timer
       if (gameState.timerInterval) clearInterval(gameState.timerInterval);
       gameState.timerInterval = setInterval(() => {
         if (!gameState.isPlaying) return;
@@ -502,14 +657,13 @@
         card2.classList.add('matched');
         gameState.flippedCards = [];
 
-        // Check win condition
+        // ✅ Win condition: ไป Gallery ก่อน แล้วค่อยไปข้อความแบบ Typewriter
         if (gameState.matchedPairs === 8) {
           gameState.isPlaying = false;
           clearInterval(gameState.timerInterval);
           setTimeout(() => {
             createConfetti();
-            document.getElementById('game-section').classList.add('hidden');
-            document.getElementById('message-section').classList.remove('hidden');
+            showGallerySection();
           }, 500);
         }
       } else {
@@ -539,7 +693,6 @@
         createFallingHearts();
         createConfetti();
 
-        // Pulse animation for heart
         const heart = document.getElementById('heart-explosion');
         heart.classList.add('pulse-heart');
       });
@@ -547,6 +700,8 @@
       document.getElementById('replay-btn').addEventListener('click', () => {
         document.getElementById('surprise-section').classList.add('hidden');
         document.getElementById('welcome-section').classList.remove('hidden');
+        document.getElementById('message-section').classList.add('hidden');
+        document.getElementById('gallery-section').classList.add('hidden');
       });
     }
 
@@ -554,24 +709,27 @@
     async function onConfigChange(newConfig) {
       config = { ...defaultConfig, ...newConfig };
 
-      // Update greeting name
       const loverName = config.lover_name || defaultConfig.lover_name;
       document.getElementById('greeting-name').textContent = `สวัสดี ${loverName}`;
       document.getElementById('final-name').textContent = `${loverName} ของฉัน`;
 
-      // Update love message
-      const loveMessage = config.love_message || defaultConfig.love_message;
-      document.getElementById('love-message-text').innerHTML = loveMessage.replace(/\n/g, '<br>');
+      // ไม่ต้อง set innerHTML ตรงนี้ เพราะเราจะใช้ typewriter ตอนเข้าหน้า message
+      // แต่ใส่ค่า default เผื่อจะเปิดหน้าข้อความตรงๆ
+      const el = document.getElementById('love-message-text');
+      if (el && document.getElementById('message-section') && !document.getElementById('message-section').classList.contains('hidden')) {
+        showMessageWithTypewriter();
+      } else if (el) {
+        el.innerHTML = '';
+      }
 
-      // Update colors
       const primaryColor = config.primary_color || defaultConfig.primary_color;
       const buttons = document.querySelectorAll('.btn-primary');
       buttons.forEach(btn => {
         btn.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${config.accent_color || defaultConfig.accent_color} 100%)`;
       });
 
-      // ✅ Update counter
       updateDaysCounter();
+      renderGallery();
     }
 
     // Map to capabilities
@@ -611,7 +769,7 @@
         ['secret_code', config.secret_code || defaultConfig.secret_code],
         ['lover_name', config.lover_name || defaultConfig.lover_name],
         ['love_message', config.love_message || defaultConfig.love_message],
-        ['relationship_start', config.relationship_start || defaultConfig.relationship_start] // ✅ เพิ่มใน panel (ถ้า SDK รองรับ)
+        ['relationship_start', config.relationship_start || defaultConfig.relationship_start]
       ]);
     }
 
@@ -620,6 +778,7 @@
       createFloatingHearts();
       setupLockScreen();
       setupNavigation();
+      setupGalleryControls();
 
       if (window.elementSdk) {
         window.elementSdk.init({
@@ -630,8 +789,8 @@
         });
       }
 
-      // ✅ Initial counter render
       updateDaysCounter();
+      renderGallery();
     }
 
     init();
